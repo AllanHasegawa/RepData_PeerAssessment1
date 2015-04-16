@@ -8,10 +8,30 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r}
+library(data.table)
 
+data <- read.table("activity.csv", sep = ",", header = TRUE, na.strings = "NA")
+data$date <- as.Date(data$date, format = "%Y-%m-%d")
+data <- data[complete.cases(data),]
+data <- data.table(data)
+summary(data)
+```
 
 ## What is mean total number of steps taken per day?
 
+```{r}
+library(ggplot2)
+
+totalStepsPerDay <- data[,sum(steps),by=date]
+
+ggplot(totalStepsPerDay, aes(x = V1)) +
+  geom_histogram(stat="bin", binwidth=4000) +
+  xlab("Total steps for each day")
+
+mean(totalStepsPerDay$V1)
+median(totalStepsPerDay$V1)
+```
 
 
 ## What is the average daily activity pattern?
