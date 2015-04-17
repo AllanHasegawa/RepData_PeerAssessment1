@@ -7,6 +7,7 @@
 
 
 ```r
+unzip("activity.zip")
 raw <- read.table("activity.csv", sep = ",", header = TRUE, na.strings = "NA")
 ```
 

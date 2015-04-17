@@ -69,7 +69,8 @@ img {
 <ol style="list-style-type: decimal">
 <li>Load the data (i.e. read.csv())</li>
 </ol>
-<pre class="r"><code>raw &lt;- read.table(&quot;activity.csv&quot;, sep = &quot;,&quot;, header = TRUE, na.strings = &quot;NA&quot;)</code></pre>
+<pre class="r"><code>unzip(&quot;activity.zip&quot;)
+raw &lt;- read.table(&quot;activity.csv&quot;, sep = &quot;,&quot;, header = TRUE, na.strings = &quot;NA&quot;)</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Process/transform the data (if necessary) into a format suitable for your analysis</li>
 </ol>

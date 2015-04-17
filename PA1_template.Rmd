@@ -11,6 +11,7 @@ output:
 1. Load the data (i.e. read.csv())
 
 ```{r}
+unzip("activity.zip")
 raw <- read.table("activity.csv", sep = ",", header = TRUE, na.strings = "NA")
 ```
 
