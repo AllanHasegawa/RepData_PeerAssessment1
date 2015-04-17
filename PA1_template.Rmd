@@ -11,13 +11,14 @@ output:
 1. Load the data (i.e. read.csv())
 
 ```{r}
-data <- read.table("activity.csv", sep = ",", header = TRUE, na.strings = "NA")
+raw <- read.table("activity.csv", sep = ",", header = TRUE, na.strings = "NA")
 ```
 
 2. Process/transform the data (if necessary) into a format suitable for your analysis
 
 ```{r}
 library(data.table)
+data <- raw
 data$date <- as.Date(data$date, format = "%Y-%m-%d")
 data <- data[complete.cases(data),]
 data <- data.table(data)
@@ -50,21 +51,99 @@ median(totalStepsPerDay$V1)
 
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r}
-avgStepsPerInterval <- data[,mean(steps),by=interval]
+meanStepsPerInterval <- data[,mean(steps),by=interval]
 
-ggplot(avgStepsPerInterval, aes(x = interval, y = V1)) +
+ggplot(meanStepsPerInterval, aes(x = interval, y = V1)) +
   geom_line() +
   xlab("Interval") +
-  ylab("Average number of steps for each day")
+  ylab("Mean number of steps for each day")
 ```
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
-avgStepsPerInterval[which.max(avgStepsPerInterval$V1)]
+meanStepsPerInterval[which.max(meanStepsPerInterval$V1)]
 ```
 
 ## Imputing missing values
 
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
+```{r}
+sum(is.na(raw))
+```
+
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+```{r}
+dataWithNAs <- raw
+dataWithNAs$date <- as.Date(dataWithNAs$date, format = "%Y-%m-%d")
+dataWithNAs <- data.table(dataWithNAs)
+
+meanStepsPerInterval <- data.table(meanStepsPerInterval)
+
+# For every row with "NA", apply the Avg Steps for the "interval" in that row.
+# The Avg Steps is a double number, so its converted to integer.
+naIndex = (1:nrow(raw))[is.na(raw)]
+dataWithNAs[naIndex,1] <- as.integer(
+  dataWithNAs[naIndex,
+              meanStepsPerInterval[interval == interval]]$V1
+  )
+```
+
+
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r}
+summary(dataWithNAs)
+```
+
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.
+
+```{r}
+totalStepsPerDay <- dataWithNAs[,sum(steps),by=date]
+
+ggplot(totalStepsPerDay, aes(x = V1)) +
+  geom_histogram(stat="bin", binwidth=4000) +
+  xlab("Total steps for each day")
+
+mean(totalStepsPerDay$V1)
+median(totalStepsPerDay$V1)
+```
+
+* Q: Do these values differ from the estimates from the first part of the assignment?
+     * A: They do differ, but not by much.
+* Q: What is the impact of imputing missing data on the estimates of the total daily number of steps?
+     * A: The data seems to be slightly more concentraded near the mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+```{r}
+data$weekend <- lapply(weekdays(data$date), function(x) x == "Sunday" || x == "Saturday")
+data$weekend <- factor(data$weekend == TRUE)
+```
+
+   1. Number os weekends and weekdays
+
+```{r}
+summary(data$weekend)
+```
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+```{r}
+weekendIndex <- (1:nrow(data))[data$weekend == TRUE]
+weekdayIndex <- (1:nrow(data))[data$weekend == FALSE]
+meanStepsWeekend <- data[weekendIndex,mean(steps),by=interval]
+meanStepsWeekday <- data[weekdayIndex,mean(steps),by=interval]
+
+meanStepsWeekend$weekend <- TRUE
+meanStepsWeekday$weekend <- FALSE
+
+meanSteps <- rbind(meanStepsWeekday, meanStepsWeekend)
+
+ggplot(meanSteps, aes(x = interval, y = V1, col = weekend)) +
+  geom_line() +
+  xlab("interval") +
+  ylab("Mean steps")
+```
