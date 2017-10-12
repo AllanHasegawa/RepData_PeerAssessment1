@@ -250,13 +250,13 @@ weekdayIndex <- (1:nrow(data))[data$weekend == FALSE]
 meanStepsWeekend <- data[weekendIndex,mean(steps),by=interval]
 meanStepsWeekday <- data[weekdayIndex,mean(steps),by=interval]
 
-meanStepsWeekend$weekend <- TRUE
-meanStepsWeekday$weekend <- FALSE
+meanStepsWeekend$weekend <- "Weekend"
+meanStepsWeekday$weekend <- "Weekday"
 
 meanSteps <- rbind(meanStepsWeekday, meanStepsWeekend)
 
-ggplot(meanSteps, aes(x = interval, y = V1, col = weekend)) +
-  geom_line() +
+qplot(interval, V1, data = meanSteps, geom = "line") +
+  facet_grid(weekend ~ .) +
   xlab("interval") +
   ylab("Mean steps")
 ```
